@@ -9,14 +9,17 @@ use crate::config::{build_config, ChatSource, CliArgs};
 use crate::error::Result;
 use crate::parser::{parse_chatgpt_to_markdown, parse_claude_to_markdown};
 
-const VERSION: &str = "1.0.0";
-const BUILD: &str = "20241027.0345";
-
 fn main() -> Result<()> {
+    // Setup app metadata
+    let app_name = env!("APP_NAME");
+    let app_version = env!("APP_VERSION");
+    let app_build = env!("APP_BUILD");
+
     // Parse command line arguments
     let cli_args = CliArgs::parse();
 
-    println!("ai_chat_md v{} (build {})", VERSION, BUILD);
+    // App banner
+    println!("{} v{} (build {})", app_name, app_version, app_build);
 
     // Get configuration
     let markdown_config = build_config(&cli_args)?;

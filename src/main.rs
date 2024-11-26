@@ -29,7 +29,10 @@ fn main() -> Result<()> {
         fs::create_dir_all(parent)?;
     }
 
-    println!("Processing {}...", markdown_config.input_file.display());
+    println!(
+        "Processing input file: {}",
+        markdown_config.input_file.display()
+    );
 
     // Read input file
     let json_content = fs::read_to_string(&markdown_config.input_file)?;

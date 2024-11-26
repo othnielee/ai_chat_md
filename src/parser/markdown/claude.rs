@@ -22,12 +22,18 @@ pub fn parse_to_markdown(chat: &ClaudeChat, config: &MarkdownConfig) -> Result<S
     );
 
     // Handle chat title and times
-    let title = &chat.name;
+    let title = config.title.clone().unwrap_or_else(|| chat.name.clone());
     let first_message_time = time_formatter.format_iso(&chat.created_at)?;
     let last_message_time = time_formatter.format_iso(&chat.updated_at)?;
 
     writeln!(markdown, "# {}", title)?;
-    writeln!(markdown, "**Started:** {}  ", first_message_time)?;
+    writeln!(markdown, "")?;
+    writeln!(
+        markdown,
+        "**Platform:** {}  ",
+        config.chat_source.platform_name()
+    )?;
+    writeln!(markdown, "**First Message:** {}  ", first_message_time)?;
     writeln!(markdown, "**Last Message:** {}  ", last_message_time)?;
     writeln!(markdown, "\n---\n")?;
 

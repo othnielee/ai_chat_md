@@ -11,6 +11,22 @@ pub enum ChatSource {
     ChatGPT,
 }
 
+impl ChatSource {
+    pub fn platform_name(&self) -> &'static str {
+        match self {
+            ChatSource::Claude => "Claude",
+            ChatSource::ChatGPT => "ChatGPT",
+        }
+    }
+
+    pub fn default_ai_name(&self) -> &'static str {
+        match self {
+            ChatSource::Claude => "Claude",
+            ChatSource::ChatGPT => "ChatGPT",
+        }
+    }
+}
+
 impl std::str::FromStr for ChatSource {
     type Err = ConfigError;
 

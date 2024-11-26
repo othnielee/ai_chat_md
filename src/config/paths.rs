@@ -1,4 +1,5 @@
 use super::error::{ConfigError, Result};
+use dirs::home_dir;
 use std::path::{Path, PathBuf};
 
 struct PathResolver {
@@ -7,7 +8,14 @@ struct PathResolver {
 
 impl PathResolver {
     fn new(base_dir: &str) -> Result<Self> {
-        let base_dir = PathBuf::from(base_dir);
+        let base_dir = if base_dir.starts_with('~') {
+            let home_dir = home_dir().ok_or(ConfigError::NoHomeDir)?;
+            let relative_path = base_dir[1..].trim_start_matches('/');
+            home_dir.join(relative_path)
+        } else {
+            PathBuf::from(base_dir)
+        };
+
         if !base_dir.exists() {
             return Err(ConfigError::DirectoryNotFound(format!(
                 "Base directory does not exist: {}",

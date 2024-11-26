@@ -2,8 +2,12 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum ConfigError {
+    #[error("Could not determine home directory")]
+    NoHomeDir,
     #[error("Configuration error: {0}")]
     Config(#[from] config::ConfigError),
+    #[error("Missing chat source: {0}")]
+    MissingChatSource(String),
     #[error("Invalid chat source: {0}")]
     ChatSource(String),
     #[error("Missing input file: {0}")]

@@ -63,14 +63,22 @@ fn build_app_config(cli_args: &CliArgs) -> Result<AppConfig> {
         }
     };
 
-    // If we have a valid config file path, add config data
-    // to the builder, overriding the default values
+    // If we have a valid config file path, add config
+    // data to the builder, overriding default values
+    // on matching config keys.
     if let Some(path) = config_path {
         builder = builder.add_source(File::from(path));
     }
 
-    // Load all matching env vars in memory, overriding
-    // values set in the config file or default values
+    // Load all matching env vars in memory.
+    // This allows us to handle env vars not specified
+    // in the .env file, so it's a necessary inclusion.
+    // At this point, they won't automatically override
+    // values set via the config file or as defaults,
+    // because they have a different naming pattern.
+    // However, we explicitly map them to the appropriate
+    // config keys below, effectively overriding any
+    // pre-existing values.
     builder = builder.add_source(
         Environment::with_prefix(ENV_PREFIX)
             .separator(ENV_SEPARATOR)
@@ -81,7 +89,7 @@ fn build_app_config(cli_args: &CliArgs) -> Result<AppConfig> {
     // Explicit mapping eliminates any issue that may arise
     // from the config crate's transformation of env vars,
     // e.g., prefix stripping, separator splitting, and case
-    // conversion. It's verbose, but it's necessary.
+    // conversion. It's verbose, but necessary.
     for (env_var, config_key) in [
         (ENV_CHAT_SOURCE, KEY_CHAT_SOURCE),
         (ENV_CHAT_TIMEZONE, KEY_TIMEZONE),

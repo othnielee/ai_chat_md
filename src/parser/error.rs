@@ -1,3 +1,4 @@
+use serde_json::Error as JsonError;
 use std::num::ParseFloatError;
 use thiserror::Error;
 
@@ -11,6 +12,8 @@ pub enum ParseError {
     InvalidTimestamp(f64),
     #[error("Format error: {0}")]
     Format(#[from] std::fmt::Error),
+    #[error("JSON error: {0}")]
+    Json(#[from] JsonError),
 }
 
 pub type Result<T> = std::result::Result<T, ParseError>;

@@ -56,21 +56,39 @@ pub fn parse_to_markdown(chat: &ClaudeChat, config: &MarkdownConfig) -> Result<S
         for content in &message.content {
             match ClaudeContentType::from(content.content_type.as_str()) {
                 ClaudeContentType::Text => {
-                    writeln!(markdown, "{}\n", content.text)?;
+                    if let Some(text) = &content.text {
+                        writeln!(markdown, "{}\n", text)?;
+                    }
+                }
+                ClaudeContentType::ToolUse => {
+                    if content.name.as_deref() == Some("artifacts") {
+                        if let Some(artifact) = &content.artifact {
+                            writeln!(markdown, "#### Artifact: {}\n", artifact.id)?;
+                            writeln!(markdown, "````")?;
+                            writeln!(markdown, "{}", artifact.content)?;
+                            writeln!(markdown, "````\n")?;
+                        }
+                    }
+                }
+                ClaudeContentType::ToolResult => {
+                    // Skip tool result
+                    continue;
                 }
                 ClaudeContentType::Unknown(content_type) => {
                     println!("Encountered unknown content type: {}", content_type);
-                    writeln!(markdown, "{}\n", content.text)?;
+                    if let Some(text) = &content.text {
+                        writeln!(markdown, "{}\n", text)?;
+                    }
                 }
             }
         }
 
         // Process attachments
         for attachment in &message.attachments {
-            writeln!(markdown, "### Attachment: {}\n", attachment.file_name)?;
-            writeln!(markdown, "```")?;
+            writeln!(markdown, "#### Attachment: {}\n", attachment.file_name)?;
+            writeln!(markdown, "````")?;
             writeln!(markdown, "{}", attachment.extracted_content)?;
-            writeln!(markdown, "```\n")?;
+            writeln!(markdown, "````\n")?;
         }
 
         writeln!(markdown, "---\n")?;

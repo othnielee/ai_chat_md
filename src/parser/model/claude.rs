@@ -20,7 +20,16 @@ pub struct ClaudeMessage {
 pub struct ClaudeContent {
     #[serde(rename = "type")]
     pub content_type: String,
-    pub text: String,
+    pub text: Option<String>,
+    pub name: Option<String>,
+    #[serde(rename = "input")]
+    pub artifact: Option<ClaudeArtifact>,
+}
+
+#[derive(Deserialize)]
+pub struct ClaudeArtifact {
+    pub id: String,
+    pub content: String,
 }
 
 #[derive(Deserialize)]

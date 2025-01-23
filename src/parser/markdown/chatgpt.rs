@@ -1,6 +1,6 @@
 use crate::config::MarkdownConfig;
 use crate::parser::error::Result;
-use crate::parser::model::{ChatGPTChat, ChatGPTNode};
+use crate::parser::model::{ChatGPTChat, ChatGPTContentPart, ChatGPTNode};
 use crate::parser::participant::ChatGPTParticipantMapper;
 use crate::parser::timestamp::{TimeFormat, TimeFormatter};
 use crate::parser::types::ChatGPTContentType;
@@ -68,8 +68,29 @@ pub fn parse_to_markdown(chat: &ChatGPTChat, config: &MarkdownConfig) -> Result<
         if let Some(message) = &node.message {
             let content = &message.content;
 
-            // Skip if content is empty or contains only blank strings
-            if content.parts.is_empty() || content.parts.iter().all(|s| s.trim().is_empty()) {
+            // Skip messages authored by tools with chain-of-thought metadata
+            if message.author.role == "tool" {
+                if let Some(initial_text) = &message.metadata.initial_text {
+                    if initial_text.trim().eq_ignore_ascii_case("Thinking") {
+                        continue;
+                    }
+                }
+            }
+
+            // Skip if there are no text parts or all text parts are empty
+            if content.parts.is_empty()
+                || content
+                    .parts
+                    .iter()
+                    .filter_map(|part| {
+                        if let ChatGPTContentPart::Text(s) = part {
+                            Some(s.trim())
+                        } else {
+                            None
+                        }
+                    })
+                    .all(|s| s.is_empty())
+            {
                 continue;
             }
 
@@ -84,9 +105,11 @@ pub fn parse_to_markdown(chat: &ChatGPTChat, config: &MarkdownConfig) -> Result<
             writeln!(markdown, "#### {} @ {}\n", sender, timestamp)?;
 
             match ChatGPTContentType::from(content.content_type.as_str()) {
-                ChatGPTContentType::Text => {
+                ChatGPTContentType::Text | ChatGPTContentType::MultimodalText => {
                     for part in &content.parts {
-                        writeln!(markdown, "{}\n", part)?;
+                        if let ChatGPTContentPart::Text(text) = part {
+                            writeln!(markdown, "{}\n", text)?;
+                        }
                     }
                 }
                 ChatGPTContentType::UserEditableContext => {
@@ -95,13 +118,17 @@ pub fn parse_to_markdown(chat: &ChatGPTChat, config: &MarkdownConfig) -> Result<
                 }
                 ChatGPTContentType::Tool | ChatGPTContentType::System => {
                     for part in &content.parts {
-                        writeln!(markdown, "{}\n", part)?;
+                        if let ChatGPTContentPart::Text(text) = part {
+                            writeln!(markdown, "{}\n", text)?;
+                        }
                     }
                 }
                 ChatGPTContentType::Unknown(content_type) => {
                     println!("Encountered unknown content type: {}", content_type);
                     for part in &content.parts {
-                        writeln!(markdown, "{}\n", part)?;
+                        if let ChatGPTContentPart::Text(text) = part {
+                            writeln!(markdown, "{}\n", text)?;
+                        }
                     }
                 }
             }

@@ -16,11 +16,13 @@ impl From<&str> for ClaudeContentType {
     }
 }
 
-pub(crate) enum ChatGPTContentType {
+#[derive(Debug)]
+pub enum ChatGPTContentType {
     Text,
     UserEditableContext,
     Tool,
     System,
+    MultimodalText,
     Unknown(String),
 }
 
@@ -31,6 +33,7 @@ impl From<&str> for ChatGPTContentType {
             "user_editable_context" => ChatGPTContentType::UserEditableContext,
             "tool" => ChatGPTContentType::Tool,
             "system" => ChatGPTContentType::System,
+            "multimodal_text" => ChatGPTContentType::MultimodalText,
             other => ChatGPTContentType::Unknown(other.to_string()),
         }
     }

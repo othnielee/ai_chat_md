@@ -45,7 +45,7 @@ pub struct ChatGPTAuthor {
 pub struct ChatGPTContent {
     pub content_type: String,
     #[serde(default)]
-    pub parts: Vec<String>,
+    pub parts: Vec<ChatGPTContentPart>,
     #[serde(default)]
     pub text: Option<String>,
 }
@@ -54,5 +54,37 @@ pub struct ChatGPTContent {
 #[allow(dead_code)]
 pub struct ChatGPTMetadata {
     #[serde(default)]
+    pub initial_text: Option<String>,
+    #[serde(default)]
     pub is_visually_hidden_from_conversation: bool,
+}
+
+#[derive(Deserialize)]
+#[serde(untagged)]
+#[allow(dead_code)]
+pub enum ChatGPTContentPart {
+    Text(String),
+    ImageAssetPointer(ImageAssetPointer),
+}
+
+#[derive(Deserialize)]
+#[allow(dead_code)]
+pub struct ImageAssetPointer {
+    pub content_type: String,
+    pub asset_pointer: String,
+    pub size_bytes: u64,
+    pub width: u32,
+    pub height: u32,
+    pub fovea: Option<String>,
+    pub metadata: ImageMetadata,
+}
+
+#[derive(Deserialize)]
+#[allow(dead_code)]
+pub struct ImageMetadata {
+    pub dalle: Option<String>,
+    pub gizmo: Option<String>,
+    pub emu_omit_glimpse_image: Option<String>,
+    pub emu_patches_override: Option<String>,
+    pub sanitized: bool,
 }

@@ -38,3 +38,22 @@ impl From<&str> for ChatGPTContentType {
         }
     }
 }
+
+#[derive(Debug)]
+pub enum DeepSeekContentType {
+    Text,
+    Thinking,
+    Unknown(String),
+}
+
+impl From<&str> for DeepSeekContentType {
+    fn from(s: &str) -> Self {
+        // DeepSeek doesn't explicitly specify content types in the JSON
+        // We'll infer based on the message properties
+        match s {
+            "text" => DeepSeekContentType::Text,
+            "thinking" => DeepSeekContentType::Thinking,
+            other => DeepSeekContentType::Unknown(other.to_string()),
+        }
+    }
+}

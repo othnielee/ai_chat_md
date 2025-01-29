@@ -9,6 +9,7 @@ pub struct AppConfig {
     pub user_name: String,
     pub title: Option<String>,
     pub timezone: String,
+    pub reasoning: bool,
     pub base_dir: String,
     pub inline_output: bool,
     pub input_file: Option<String>,
@@ -21,6 +22,7 @@ pub struct MarkdownConfig {
     pub user_name: String,
     pub title: Option<String>,
     pub timezone: String,
+    pub reasoning: bool,
     pub input_file: PathBuf,
     pub output_file: PathBuf,
 }
@@ -39,6 +41,7 @@ impl AppConfig {
             user_name: self.user_name,
             title: self.title,
             timezone: self.timezone,
+            reasoning: self.reasoning,
             input_file: input_path,
             output_file: output_path,
         }

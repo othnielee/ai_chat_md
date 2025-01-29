@@ -37,3 +37,21 @@ impl<'a> ChatGPTParticipantMapper<'a> {
         }
     }
 }
+
+pub(crate) struct DeepSeekParticipantMapper<'a> {
+    config: &'a MarkdownConfig,
+}
+
+impl<'a> DeepSeekParticipantMapper<'a> {
+    pub fn new(config: &'a MarkdownConfig) -> Self {
+        Self { config }
+    }
+
+    pub fn get_name<'b>(&'b self, sender: &'b str) -> &'b str {
+        match sender {
+            "USER" => &self.config.user_name,
+            "ASSISTANT" => &self.config.ai_name,
+            other => other,
+        }
+    }
+}

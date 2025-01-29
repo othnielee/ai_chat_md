@@ -19,6 +19,7 @@ fn build_app_config(cli_args: &CliArgs) -> Result<AppConfig> {
     // Set default values
     builder = builder.set_default(KEY_USER_NAME, DEFAULT_USER_NAME)?;
     builder = builder.set_default(KEY_TIMEZONE, DEFAULT_TIMEZONE)?;
+    builder = builder.set_default(KEY_SHOW_REASONING, DEFAULT_SHOW_REASONING)?;
     builder = builder.set_default(KEY_BASE_DIR, DEFAULT_BASE_DIR)?;
     builder = builder.set_default(KEY_INLINE_OUTPUT, DEFAULT_INLINE_OUTPUT)?;
 
@@ -93,6 +94,7 @@ fn build_app_config(cli_args: &CliArgs) -> Result<AppConfig> {
     for (env_var, config_key) in [
         (ENV_CHAT_SOURCE, KEY_CHAT_SOURCE),
         (ENV_CHAT_TIMEZONE, KEY_TIMEZONE),
+        (ENV_CHAT_SHOW_REASONING, KEY_SHOW_REASONING),
         (ENV_CHAT_BASE_DIR, KEY_BASE_DIR),
         (ENV_CHAT_INLINE_OUTPUT, KEY_INLINE_OUTPUT),
         (ENV_CHAT_INPUT_FILE, KEY_INPUT_FILE),
@@ -122,6 +124,7 @@ fn build_app_config(cli_args: &CliArgs) -> Result<AppConfig> {
         user_name: config.get_string(KEY_USER_NAME)?,
         title: config.get_string(KEY_TITLE).ok(),
         timezone: config.get_string(KEY_TIMEZONE)?,
+        reasoning: config.get_bool(KEY_SHOW_REASONING)?,
         base_dir: config.get_string(KEY_BASE_DIR)?,
         inline_output: config.get_bool(KEY_INLINE_OUTPUT)?,
         input_file: config.get_string(KEY_INPUT_FILE).ok(),
@@ -143,6 +146,9 @@ fn build_app_config(cli_args: &CliArgs) -> Result<AppConfig> {
     }
     if let Some(timezone) = &cli_args.timezone {
         app_config.timezone = timezone.clone();
+    }
+    if let Some(reasoning) = &cli_args.reasoning {
+        app_config.reasoning = reasoning.clone();
     }
     if let Some(base_dir) = &cli_args.base_dir {
         app_config.base_dir = base_dir.clone();

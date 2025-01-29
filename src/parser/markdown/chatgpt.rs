@@ -68,7 +68,7 @@ pub fn parse_to_markdown(chat: &ChatGPTChat, config: &MarkdownConfig) -> Result<
         if let Some(message) = &node.message {
             let content = &message.content;
 
-            // Skip messages authored by tools with chain-of-thought metadata
+            // Skip messages authored by tools with reasoning / chain-of-thought metadata
             if message.author.role == "tool" {
                 if let Some(initial_text) = &message.metadata.initial_text {
                     if initial_text.trim().eq_ignore_ascii_case("Thinking") {

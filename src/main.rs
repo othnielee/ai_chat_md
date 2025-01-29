@@ -7,7 +7,9 @@ use std::fs;
 
 use crate::config::{build_config, ChatSource, CliArgs};
 use crate::error::Result;
-use crate::parser::{parse_chatgpt_to_markdown, parse_claude_to_markdown};
+use crate::parser::{
+    parse_chatgpt_to_markdown, parse_claude_to_markdown, parse_deepseek_to_markdown,
+};
 
 fn main() -> Result<()> {
     // Setup app metadata
@@ -50,6 +52,14 @@ fn main() -> Result<()> {
 
             // Convert to markdown and write to file
             let markdown = parse_chatgpt_to_markdown(&chat, &markdown_config)?;
+            fs::write(&markdown_config.output_file, markdown)?;
+        }
+        ChatSource::DeepSeek => {
+            // Parse
+            let chat = serde_json::from_str(&json_content)?;
+
+            // Convert to markdown and write to file
+            let markdown = parse_deepseek_to_markdown(&chat, &markdown_config)?;
             fs::write(&markdown_config.output_file, markdown)?;
         }
     }

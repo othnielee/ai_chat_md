@@ -13,7 +13,7 @@ use clap::Parser;
 )]
 pub struct CliArgs {
     /// Chat source (-s)
-    #[arg(short = 's', long, env = ENV_CHAT_SOURCE)]
+    #[arg(short = 's', long, env = ENV_CHAT_SOURCE, ignore_case = true)]
     pub chat_source: Option<ChatSource>,
 
     /// Name for the AI assistant (-a)
@@ -31,6 +31,10 @@ pub struct CliArgs {
     /// Timezone for the chat (-z)
     #[arg(short = 'z', long, env = ENV_CHAT_TIMEZONE)]
     pub timezone: Option<String>,
+
+    /// Show reasoning (-r)
+    #[arg(short = 'r', long, env = ENV_CHAT_SHOW_REASONING)]
+    pub reasoning: Option<bool>,
 
     /// Base directory for input/output files (-d)
     #[arg(short = 'd', long, env = ENV_CHAT_BASE_DIR)]

@@ -1,6 +1,6 @@
 use crate::config::MarkdownConfig;
 use crate::parser::error::Result;
-use crate::parser::model::{ChatGPTChat, ChatGPTContentPart, ChatGPTNode};
+use crate::parser::model::{ChatGPTChat, ChatGPTContentPart, ChatGPTMessage, ChatGPTNode};
 use crate::parser::participant::ChatGPTParticipantMapper;
 use crate::parser::timestamp::{TimeFormat, TimeFormatter};
 use crate::parser::types::ChatGPTContentType;
@@ -27,6 +27,25 @@ fn get_ordered_messages(chat: &ChatGPTChat) -> Vec<&ChatGPTNode> {
     // Reverse to get chronological order
     messages.reverse();
     messages
+}
+
+fn is_reasoning_message(message: &ChatGPTMessage) -> bool {
+    // Identifies ChatGPT reasoning/thinking messages by checking for:
+    // - Tool messages with initial text "Reasoning" and finished text "Reasoned..."
+    // - Tool messages with initial text "Thinking" and finished text "Thought..."
+    message.author.role == "tool"
+        && ((message.metadata.initial_text.as_deref() == Some("Reasoning")
+            && message
+                .metadata
+                .finished_text
+                .as_deref()
+                .map_or(false, |text| text.starts_with("Reasoned")))
+            || (message.metadata.initial_text.as_deref() == Some("Thinking")
+                && message
+                    .metadata
+                    .finished_text
+                    .as_deref()
+                    .map_or(false, |text| text.starts_with("Thought"))))
 }
 
 pub fn parse_to_markdown(chat: &ChatGPTChat, config: &MarkdownConfig) -> Result<String> {
@@ -68,13 +87,9 @@ pub fn parse_to_markdown(chat: &ChatGPTChat, config: &MarkdownConfig) -> Result<
         if let Some(message) = &node.message {
             let content = &message.content;
 
-            // Skip messages authored by tools with reasoning / chain-of-thought metadata
-            if message.author.role == "tool" {
-                if let Some(initial_text) = &message.metadata.initial_text {
-                    if initial_text.trim().eq_ignore_ascii_case("Thinking") {
-                        continue;
-                    }
-                }
+            // Skip messages authored by tools with reasoning metadata
+            if !config.reasoning && is_reasoning_message(message) {
+                continue;
             }
 
             // Skip if there are no text parts or all text parts are empty

@@ -56,6 +56,8 @@ pub struct ChatGPTMetadata {
     #[serde(default)]
     pub initial_text: Option<String>,
     #[serde(default)]
+    pub finished_text: Option<String>,
+    #[serde(default)]
     pub is_visually_hidden_from_conversation: bool,
 }
 

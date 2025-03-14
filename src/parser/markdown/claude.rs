@@ -63,10 +63,19 @@ pub fn parse_to_markdown(chat: &ClaudeChat, config: &MarkdownConfig) -> Result<S
                 ClaudeContentType::ToolUse => {
                     if content.name.as_deref() == Some("artifacts") {
                         if let Some(artifact) = &content.artifact {
-                            writeln!(markdown, "#### Artifact: {}\n", artifact.id)?;
-                            writeln!(markdown, "````")?;
-                            writeln!(markdown, "{}", artifact.content)?;
-                            writeln!(markdown, "````\n")?;
+                            if let Some(id) = &artifact.id {
+                                writeln!(markdown, "#### Artifact: {:?}\n", id)?;
+                            }
+                            if let Some(content) = &artifact.content {
+                                writeln!(markdown, "````")?;
+                                writeln!(markdown, "{}\n", content)?;
+                                writeln!(markdown, "````\n")?;
+                            }
+                            if let Some(code) = &artifact.code {
+                                writeln!(markdown, "```")?;
+                                writeln!(markdown, "{:?}", code)?;
+                                writeln!(markdown, "```\n")?;
+                            }
                         }
                     }
                 }

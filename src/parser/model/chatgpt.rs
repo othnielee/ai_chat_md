@@ -45,6 +45,16 @@ pub struct ChatGPTAuthor {
 pub struct ChatGPTContent {
     pub content_type: String,
     #[serde(default)]
+    pub title: Option<String>,
+    #[serde(default)]
+    pub domain: Option<String>,
+    #[serde(default)]
+    pub url: Option<String>,
+    #[serde(default)]
+    pub result: Option<String>,
+    #[serde(default)]
+    pub summary: Option<String>,
+    #[serde(default)]
     pub parts: Vec<ChatGPTContentPart>,
     #[serde(default)]
     pub text: Option<String>,
@@ -53,6 +63,10 @@ pub struct ChatGPTContent {
 #[derive(Default, Deserialize)]
 #[allow(dead_code)]
 pub struct ChatGPTMetadata {
+    #[serde(default)]
+    pub model_slug: Option<String>,
+    #[serde(default)]
+    pub default_model_slug: Option<String>,
     #[serde(default)]
     pub initial_text: Option<String>,
     #[serde(default)]

@@ -31,15 +31,17 @@ fn get_ordered_messages(chat: &ChatGPTChat) -> Vec<&ChatGPTNode> {
 
 fn is_reasoning_message(message: &ChatGPTMessage) -> bool {
     // Identifies ChatGPT reasoning/thinking messages by checking for:
-    // - Tool messages with initial text "Reasoning" and finished text "Reasoned..."
-    // - Tool messages with initial text "Thinking" and finished text "Thought..."
-    message.author.role == "tool"
-        && ((message.metadata.initial_text.as_deref() == Some("Reasoning")
-            && message
-                .metadata
-                .finished_text
-                .as_deref()
-                .map_or(false, |text| text.starts_with("Reasoned")))
+    // - Tool or system messages that have text content
+    // - Tool or system messages with initial text "Reasoning" and finished text "Reasoned..."
+    // - Tool or system messages with initial text "Thinking" and finished text "Thought..."
+    (message.author.role == "tool" || message.author.role == "system")
+        && (message.content.content_type == "text"
+            || (message.metadata.initial_text.as_deref() == Some("Reasoning")
+                && message
+                    .metadata
+                    .finished_text
+                    .as_deref()
+                    .map_or(false, |text| text.starts_with("Reasoned")))
             || (message.metadata.initial_text.as_deref() == Some("Thinking")
                 && message
                     .metadata
@@ -93,18 +95,19 @@ pub fn parse_to_markdown(chat: &ChatGPTChat, config: &MarkdownConfig) -> Result<
             }
 
             // Skip if there are no text parts or all text parts are empty
-            if content.parts.is_empty()
-                || content
-                    .parts
-                    .iter()
-                    .filter_map(|part| {
-                        if let ChatGPTContentPart::Text(s) = part {
-                            Some(s.trim())
-                        } else {
-                            None
-                        }
-                    })
-                    .all(|s| s.is_empty())
+            if content.text.as_deref().unwrap_or_default().is_empty()
+                && (content.parts.is_empty()
+                    || content
+                        .parts
+                        .iter()
+                        .filter_map(|part| {
+                            if let ChatGPTContentPart::Text(s) = part {
+                                Some(s.trim())
+                            } else {
+                                None
+                            }
+                        })
+                        .all(|s| s.is_empty()))
             {
                 continue;
             }
@@ -126,6 +129,17 @@ pub fn parse_to_markdown(chat: &ChatGPTChat, config: &MarkdownConfig) -> Result<
                             writeln!(markdown, "{}\n", text)?;
                         }
                     }
+                }
+                ChatGPTContentType::TetherQuote => {
+                    if let Some(quoted) = &content.text {
+                        if let Some(title) = &content.title {
+                            writeln!(markdown, "##### Quoted Content: {}\n", title)?;
+                        }
+                        writeln!(markdown, "````")?;
+                        writeln!(markdown, "{}\n", quoted)?;
+                        writeln!(markdown, "````\n")?;
+                    }
+                    continue;
                 }
                 ChatGPTContentType::UserEditableContext => {
                     // Skip user profile/instructions

@@ -19,10 +19,11 @@ impl From<&str> for ClaudeContentType {
 #[derive(Debug)]
 pub enum ChatGPTContentType {
     Text,
+    TetherQuote,
+    MultimodalText,
     UserEditableContext,
     Tool,
     System,
-    MultimodalText,
     Unknown(String),
 }
 
@@ -30,10 +31,11 @@ impl From<&str> for ChatGPTContentType {
     fn from(s: &str) -> Self {
         match s {
             "text" => ChatGPTContentType::Text,
+            "tether_quote" => ChatGPTContentType::TetherQuote,
+            "multimodal_text" => ChatGPTContentType::MultimodalText,
             "user_editable_context" => ChatGPTContentType::UserEditableContext,
             "tool" => ChatGPTContentType::Tool,
             "system" => ChatGPTContentType::System,
-            "multimodal_text" => ChatGPTContentType::MultimodalText,
             other => ChatGPTContentType::Unknown(other.to_string()),
         }
     }

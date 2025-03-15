@@ -64,16 +64,16 @@ pub fn parse_to_markdown(chat: &ClaudeChat, config: &MarkdownConfig) -> Result<S
                     if content.name.as_deref() == Some("artifacts") {
                         if let Some(artifact) = &content.artifact {
                             if let Some(id) = &artifact.id {
-                                writeln!(markdown, "#### Artifact: {:?}\n", id)?;
+                                writeln!(markdown, "#### Artifact: {}\n", id)?;
                             }
                             if let Some(content) = &artifact.content {
                                 writeln!(markdown, "````")?;
-                                writeln!(markdown, "{}\n", content)?;
+                                writeln!(markdown, "{}", content)?;
                                 writeln!(markdown, "````\n")?;
                             }
                             if let Some(code) = &artifact.code {
                                 writeln!(markdown, "```")?;
-                                writeln!(markdown, "{:?}", code)?;
+                                writeln!(markdown, "{}", code)?;
                                 writeln!(markdown, "```\n")?;
                             }
                         }

@@ -136,7 +136,7 @@ pub fn parse_to_markdown(chat: &ChatGPTChat, config: &MarkdownConfig) -> Result<
                             writeln!(markdown, "##### Quoted Content: {}\n", title)?;
                         }
                         writeln!(markdown, "````")?;
-                        writeln!(markdown, "{}\n", quoted)?;
+                        writeln!(markdown, "{}", quoted)?;
                         writeln!(markdown, "````\n")?;
                     }
                     continue;

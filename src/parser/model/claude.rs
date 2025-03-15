@@ -63,10 +63,14 @@ pub struct File {
     pub file_uuid: String,
     pub file_name: String,
     pub created_at: String,
-    pub thumbnail_url: String,
-    pub preview_url: String,
-    pub thumbnail_asset: ThumbnailAsset,
-    pub preview_asset: PreviewAsset,
+    #[serde(default)]
+    pub thumbnail_url: Option<String>,
+    #[serde(default)]
+    pub preview_url: Option<String>,
+    #[serde(default)]
+    pub thumbnail_asset: Option<ThumbnailAsset>,
+    #[serde(default)]
+    pub preview_asset: Option<PreviewAsset>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -75,10 +79,14 @@ pub struct FileV2 {
     pub file_uuid: String,
     pub file_name: String,
     pub created_at: String,
-    pub thumbnail_url: String,
-    pub preview_url: String,
-    pub thumbnail_asset: ThumbnailAsset,
-    pub preview_asset: PreviewAsset,
+    #[serde(default)]
+    pub thumbnail_url: Option<String>,
+    #[serde(default)]
+    pub preview_url: Option<String>,
+    #[serde(default)]
+    pub thumbnail_asset: Option<ThumbnailAsset>,
+    #[serde(default)]
+    pub preview_asset: Option<PreviewAsset>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]

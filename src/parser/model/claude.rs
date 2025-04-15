@@ -39,6 +39,13 @@ pub struct ClaudeContent {
     pub name: Option<String>,
     #[serde(rename = "input")]
     pub artifact: Option<ClaudeArtifact>,
+    pub thinking: Option<String>,
+    pub summaries: Option<Vec<ClaudeSummary>>,
+}
+
+#[derive(Deserialize)]
+pub struct ClaudeSummary {
+    pub summary: String,
 }
 
 #[derive(Deserialize)]

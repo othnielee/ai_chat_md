@@ -60,6 +60,22 @@ pub fn parse_to_markdown(chat: &ClaudeChat, config: &MarkdownConfig) -> Result<S
                         writeln!(markdown, "{}\n", text)?;
                     }
                 }
+                ClaudeContentType::Thinking => {
+                    // Only include thinking content if reasoning is enabled
+                    if config.reasoning {
+                        if let Some(thinking) = &content.thinking {
+                            writeln!(markdown, "##### Thinking Process\n")?;
+                            writeln!(markdown, "{}\n", thinking)?;
+                        }
+                        // Also include summaries if present
+                        if let Some(summaries) = &content.summaries {
+                            writeln!(markdown, "##### Thinking Summaries\n")?;
+                            for (i, summary) in summaries.iter().enumerate() {
+                                writeln!(markdown, "{}. {}\n", i + 1, summary.summary)?;
+                            }
+                        }
+                    }
+                }
                 ClaudeContentType::ToolUse => {
                     if content.name.as_deref() == Some("artifacts") {
                         if let Some(artifact) = &content.artifact {

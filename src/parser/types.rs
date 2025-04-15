@@ -1,5 +1,6 @@
 pub(crate) enum ClaudeContentType {
     Text,
+    Thinking,
     ToolUse,
     ToolResult,
     Unknown(String),
@@ -9,6 +10,7 @@ impl From<&str> for ClaudeContentType {
     fn from(s: &str) -> Self {
         match s {
             "text" => ClaudeContentType::Text,
+            "thinking" => ClaudeContentType::Thinking,
             "tool_use" => ClaudeContentType::ToolUse,
             "tool_result" => ClaudeContentType::ToolResult,
             other => ClaudeContentType::Unknown(other.to_string()),

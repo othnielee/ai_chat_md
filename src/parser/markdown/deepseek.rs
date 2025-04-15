@@ -63,7 +63,7 @@ pub fn parse_to_markdown(response: &DeepSeekResponse, config: &MarkdownConfig) -
             DeepSeekContentType::Thinking => {
                 if config.reasoning && message.thinking_enabled {
                     if let Some(thinking) = &message.thinking_content {
-                        writeln!(markdown, "#### Thinking Process\n")?;
+                        writeln!(markdown, "##### Thinking Process\n")?;
                         writeln!(markdown, "{}\n", thinking)?;
                     }
                 }

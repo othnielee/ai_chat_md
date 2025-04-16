@@ -21,6 +21,9 @@ pub fn parse_to_markdown(chat: &ClaudeChat, config: &MarkdownConfig) -> Result<S
             .unwrap(),
     );
 
+    // Setup reasoning handling
+    let mut in_reasoning_block = false;
+
     // Handle chat title and times
     let title = config.title.clone().unwrap_or_else(|| chat.name.clone());
     let first_message_time = time_formatter.format_iso(&chat.created_at)?;
@@ -46,45 +49,108 @@ pub fn parse_to_markdown(chat: &ClaudeChat, config: &MarkdownConfig) -> Result<S
             continue;
         }
 
-        // Add sender and timestamp as header
-        let timestamp = time_formatter.format_iso(&message.created_at)?;
         let sender = participant_mapper.get_name(&message.sender);
 
-        writeln!(markdown, "#### {} @ {}\n", sender, timestamp)?;
+        // Check if this message contains thinking content
+        let has_thinking = message.content.iter().any(|content| {
+            matches!(
+                ClaudeContentType::from(content.content_type.as_str()),
+                ClaudeContentType::Thinking
+            )
+        });
+
+        // If this message includes thinking and we haven't entered a reasoning block yet, start one
+        if config.reasoning && has_thinking && !in_reasoning_block {
+            if let Some(thinking_content) = message.content.iter().find(|c| {
+                matches!(
+                    ClaudeContentType::from(c.content_type.as_str()),
+                    ClaudeContentType::Thinking
+                )
+            }) {
+                writeln!(
+                    markdown,
+                    "#### {} @ {}\n",
+                    sender,
+                    time_formatter.format_iso(&thinking_content.start_timestamp)?
+                )?;
+                writeln!(markdown, "##### Thinking Process\n")?;
+                in_reasoning_block = true;
+            }
+        }
+        // If this message has no thinking content but we were in a reasoning block, end that block
+        else if !has_thinking && in_reasoning_block {
+            writeln!(markdown, "---\n")?;
+            in_reasoning_block = false;
+        }
+
+        // If we are not showing reasoning or there is no thinking content, print a normal header
+        if !has_thinking || !config.reasoning {
+            if let Some(first_text) = message.content.iter().find(|c| {
+                matches!(
+                    ClaudeContentType::from(c.content_type.as_str()),
+                    ClaudeContentType::Text
+                )
+            }) {
+                writeln!(
+                    markdown,
+                    "#### {} @ {}\n",
+                    sender,
+                    time_formatter.format_iso(&first_text.start_timestamp)?
+                )?;
+            }
+        }
+
+        // Track whether the immediately preceding piece of content was a thinking segment
+        let mut last_segment_was_thinking = false;
 
         // Process main content
         for content in &message.content {
             match ClaudeContentType::from(content.content_type.as_str()) {
                 ClaudeContentType::Text => {
+                    // If we just had thinking, place a separator and new header so text is separate
+                    if last_segment_was_thinking && config.reasoning {
+                        writeln!(markdown, "---\n")?;
+                        writeln!(
+                            markdown,
+                            "#### {} @ {}\n",
+                            sender,
+                            time_formatter.format_iso(&content.start_timestamp)?
+                        )?;
+                        // We've now transitioned out of the reasoning block
+                        in_reasoning_block = false;
+                    }
                     if let Some(text) = &content.text {
-                        writeln!(markdown, "{}\n", text)?;
+                        writeln!(markdown, "{}\n", text.trim())?;
                     }
                 }
                 ClaudeContentType::Thinking => {
-                    // Only include thinking content if reasoning is enabled
+                    last_segment_was_thinking = true;
+                    // Only render thinking if reasoning mode is enabled
                     if config.reasoning {
                         if let Some(thinking) = &content.thinking {
-                            writeln!(markdown, "##### Thinking Process\n")?;
-                            writeln!(markdown, "{}\n", thinking)?;
+                            writeln!(markdown, "{}\n", thinking.trim())?;
                         }
-                        // Also include summaries if present
+                        // Show any provided summaries
                         if let Some(summaries) = &content.summaries {
-                            writeln!(markdown, "##### Thinking Summaries\n")?;
-                            for (i, summary) in summaries.iter().enumerate() {
-                                writeln!(markdown, "{}. {}\n", i + 1, summary.summary)?;
+                            if !summaries.is_empty() {
+                                writeln!(markdown, "##### Thinking Summaries\n")?;
+                                for (i, summary) in summaries.iter().enumerate() {
+                                    writeln!(markdown, "{}. {}\n", i + 1, summary.summary.trim())?;
+                                }
                             }
                         }
                     }
                 }
                 ClaudeContentType::ToolUse => {
+                    // If the tool type is 'artifacts', print it as code/artifact content
                     if content.name.as_deref() == Some("artifacts") {
                         if let Some(artifact) = &content.artifact {
                             if let Some(id) = &artifact.id {
                                 writeln!(markdown, "#### Artifact: {}\n", id)?;
                             }
-                            if let Some(content) = &artifact.content {
+                            if let Some(artifact_content) = &artifact.content {
                                 writeln!(markdown, "````")?;
-                                writeln!(markdown, "{}", content)?;
+                                writeln!(markdown, "{}", artifact_content)?;
                                 writeln!(markdown, "````\n")?;
                             }
                             if let Some(code) = &artifact.code {
@@ -102,7 +168,7 @@ pub fn parse_to_markdown(chat: &ClaudeChat, config: &MarkdownConfig) -> Result<S
                 ClaudeContentType::Unknown(content_type) => {
                     println!("Encountered unknown content type: {}", content_type);
                     if let Some(text) = &content.text {
-                        writeln!(markdown, "{}\n", text)?;
+                        writeln!(markdown, "{}\n", text.trim())?;
                     }
                 }
             }

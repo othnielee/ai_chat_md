@@ -32,9 +32,12 @@ pub struct ClaudeMessage {
 }
 
 #[derive(Deserialize)]
+#[allow(dead_code)]
 pub struct ClaudeContent {
     #[serde(rename = "type")]
     pub content_type: String,
+    pub start_timestamp: String,
+    pub stop_timestamp: String,
     pub text: Option<String>,
     pub name: Option<String>,
     #[serde(rename = "input")]

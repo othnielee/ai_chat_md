@@ -66,6 +66,9 @@ pub fn parse_to_markdown(chat: &ChatGPTChat, config: &MarkdownConfig) -> Result<
             .unwrap(),
     );
 
+    // Setup reasoning handling
+    let mut in_reasoning_block = false;
+
     // Handle chat title and times
     let title = config.title.clone().unwrap_or_else(|| chat.title.clone());
     let first_message_time = time_formatter.format_unix(chat.created_at)?;
@@ -89,11 +92,6 @@ pub fn parse_to_markdown(chat: &ChatGPTChat, config: &MarkdownConfig) -> Result<
         if let Some(message) = &node.message {
             let content = &message.content;
 
-            // Skip messages authored by tools with reasoning metadata
-            if !config.reasoning && is_reasoning_message(message) {
-                continue;
-            }
-
             // Skip if there are no text parts or all text parts are empty
             if content.text.as_deref().unwrap_or_default().is_empty()
                 && (content.parts.is_empty()
@@ -112,21 +110,38 @@ pub fn parse_to_markdown(chat: &ChatGPTChat, config: &MarkdownConfig) -> Result<
                 continue;
             }
 
-            // Add sender and timestamp as header
+            let is_reasoning = config.reasoning && is_reasoning_message(message);
+
+            // Get timestamp for both reasoning and non-reasoning messages
             let timestamp = if let Some(created_at) = message.created_at {
                 time_formatter.format_unix(created_at)?
             } else {
                 "Unknown Time".to_string()
             };
-
             let sender = participant_mapper.get_name(&message.author.role);
-            writeln!(markdown, "#### {} @ {}\n", sender, timestamp)?;
+
+            // Handle transition into reasoning block
+            if is_reasoning && !in_reasoning_block {
+                writeln!(markdown, "#### {} @ {}\n", sender, timestamp)?;
+                writeln!(markdown, "##### Thinking Process\n")?;
+                in_reasoning_block = true;
+            }
+            // Handle transition out of reasoning block
+            else if !is_reasoning && in_reasoning_block {
+                writeln!(markdown, "---\n")?;
+                in_reasoning_block = false;
+            }
+
+            // Only add sender/timestamp header for non-reasoning messages
+            if !is_reasoning {
+                writeln!(markdown, "#### {} @ {}\n", sender, timestamp)?;
+            }
 
             match ChatGPTContentType::from(content.content_type.as_str()) {
                 ChatGPTContentType::Text | ChatGPTContentType::MultimodalText => {
                     for part in &content.parts {
                         if let ChatGPTContentPart::Text(text) = part {
-                            writeln!(markdown, "{}\n", text)?;
+                            writeln!(markdown, "{}\n", text.trim())?;
                         }
                     }
                 }
@@ -148,7 +163,7 @@ pub fn parse_to_markdown(chat: &ChatGPTChat, config: &MarkdownConfig) -> Result<
                 ChatGPTContentType::Tool | ChatGPTContentType::System => {
                     for part in &content.parts {
                         if let ChatGPTContentPart::Text(text) = part {
-                            writeln!(markdown, "{}\n", text)?;
+                            writeln!(markdown, "{}\n", text.trim())?;
                         }
                     }
                 }
@@ -156,13 +171,16 @@ pub fn parse_to_markdown(chat: &ChatGPTChat, config: &MarkdownConfig) -> Result<
                     println!("Encountered unknown content type: {}", content_type);
                     for part in &content.parts {
                         if let ChatGPTContentPart::Text(text) = part {
-                            writeln!(markdown, "{}\n", text)?;
+                            writeln!(markdown, "{}\n", text.trim())?;
                         }
                     }
                 }
             }
 
-            writeln!(markdown, "---\n")?;
+            // Only add separator for non-reasoning messages
+            if !is_reasoning {
+                writeln!(markdown, "---\n")?;
+            }
         }
     }
 

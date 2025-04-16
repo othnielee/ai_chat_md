@@ -36,8 +36,10 @@ pub struct ClaudeMessage {
 pub struct ClaudeContent {
     #[serde(rename = "type")]
     pub content_type: String,
-    pub start_timestamp: String,
-    pub stop_timestamp: String,
+    #[serde(default)]
+    pub start_timestamp: Option<String>,
+    #[serde(default)]
+    pub stop_timestamp: Option<String>,
     pub text: Option<String>,
     pub name: Option<String>,
     #[serde(rename = "input")]

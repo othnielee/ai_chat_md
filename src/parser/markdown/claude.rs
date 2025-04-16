@@ -67,11 +67,15 @@ pub fn parse_to_markdown(chat: &ClaudeChat, config: &MarkdownConfig) -> Result<S
                     ClaudeContentType::Thinking
                 )
             }) {
+                let timestamp = thinking_content
+                    .start_timestamp
+                    .as_deref()
+                    .unwrap_or(&message.created_at);
                 writeln!(
                     markdown,
                     "#### {} @ {}\n",
                     sender,
-                    time_formatter.format_iso(&thinking_content.start_timestamp)?
+                    time_formatter.format_iso(timestamp)?
                 )?;
                 writeln!(markdown, "##### Thinking Process\n")?;
                 in_reasoning_block = true;
@@ -91,11 +95,15 @@ pub fn parse_to_markdown(chat: &ClaudeChat, config: &MarkdownConfig) -> Result<S
                     ClaudeContentType::Text
                 )
             }) {
+                let timestamp = first_text
+                    .start_timestamp
+                    .as_deref()
+                    .unwrap_or(&message.created_at);
                 writeln!(
                     markdown,
                     "#### {} @ {}\n",
                     sender,
-                    time_formatter.format_iso(&first_text.start_timestamp)?
+                    time_formatter.format_iso(timestamp)?
                 )?;
             }
         }
@@ -110,11 +118,15 @@ pub fn parse_to_markdown(chat: &ClaudeChat, config: &MarkdownConfig) -> Result<S
                     // If we just had thinking, place a separator and new header so text is separate
                     if last_segment_was_thinking && config.reasoning {
                         writeln!(markdown, "---\n")?;
+                        let timestamp = content
+                            .start_timestamp
+                            .as_deref()
+                            .unwrap_or(&message.created_at);
                         writeln!(
                             markdown,
                             "#### {} @ {}\n",
                             sender,
-                            time_formatter.format_iso(&content.start_timestamp)?
+                            time_formatter.format_iso(timestamp)?
                         )?;
                         // We've now transitioned out of the reasoning block
                         in_reasoning_block = false;

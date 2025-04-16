@@ -31,7 +31,7 @@ pub fn parse_to_markdown(response: &DeepSeekResponse, config: &MarkdownConfig) -
     let last_message_time = time_formatter.format_unix(chat.chat_session.updated_at)?;
 
     writeln!(markdown, "# {}", title)?;
-    writeln!(markdown, "")?;
+    writeln!(markdown)?;
     writeln!(
         markdown,
         "**Platform:** {}  ",
@@ -42,11 +42,11 @@ pub fn parse_to_markdown(response: &DeepSeekResponse, config: &MarkdownConfig) -
     writeln!(markdown, "\n---\n")?;
 
     // Process messages
-    for message in chat.chat_messages.iter() {
+    for message in &chat.chat_messages {
         progress.inc(1);
 
-        // Skip if content is empty
-        if message.content.is_empty() {
+        // If there is no text AND no thinking content, skip
+        if message.thinking_content.is_none() && message.content.trim().is_empty() {
             continue;
         }
 
@@ -55,22 +55,46 @@ pub fn parse_to_markdown(response: &DeepSeekResponse, config: &MarkdownConfig) -
         let sender = participant_mapper.get_name(&message.role);
         writeln!(markdown, "#### {} @ {}\n", sender, timestamp)?;
 
-        // Process content based on type
-        match DeepSeekContentType::from("text") {
-            DeepSeekContentType::Text => {
-                writeln!(markdown, "{}\n", message.content)?;
-            }
+        // Decide whether to treat it as "Thinking" or "Text" for the main match
+        let main_content_type = if config.reasoning && message.thinking_enabled {
+            DeepSeekContentType::Thinking
+        } else {
+            DeepSeekContentType::Text
+        };
+
+        match main_content_type {
             DeepSeekContentType::Thinking => {
-                if config.reasoning && message.thinking_enabled {
-                    if let Some(thinking) = &message.thinking_content {
+                if let Some(thinking) = &message.thinking_content {
+                    let trimmed_thinking = thinking.trim();
+                    if !trimmed_thinking.is_empty() {
                         writeln!(markdown, "##### Thinking Process\n")?;
-                        writeln!(markdown, "{}\n", thinking)?;
+                        writeln!(markdown, "{}\n", trimmed_thinking)?;
                     }
                 }
+                let trimmed_content = message.content.trim();
+                if !trimmed_content.is_empty() {
+                    // Only reprint heading if it is an assistant/agent message
+                    if message.role == "ASSISTANT" {
+                        writeln!(markdown, "---\n")?;
+                        writeln!(markdown, "#### {} @ {}\n", sender, timestamp)?;
+                    }
+
+                    // Print the normal text
+                    writeln!(markdown, "{}\n", trimmed_content)?;
+                }
             }
-            DeepSeekContentType::Unknown(content_type) => {
-                println!("Encountered unknown content type: {}", content_type);
-                writeln!(markdown, "{}\n", message.content)?;
+            DeepSeekContentType::Text => {
+                let trimmed_content = message.content.trim();
+                if !trimmed_content.is_empty() {
+                    writeln!(markdown, "{}\n", trimmed_content)?;
+                }
+            }
+            DeepSeekContentType::Unknown(variant) => {
+                let trimmed_content = message.content.trim();
+                if !trimmed_content.is_empty() {
+                    println!("Encountered unknown content type: {}", variant);
+                    writeln!(markdown, "{}\n", trimmed_content)?;
+                }
             }
         }
 

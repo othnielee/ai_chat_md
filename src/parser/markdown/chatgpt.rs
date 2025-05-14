@@ -110,6 +110,11 @@ pub fn parse_to_markdown(chat: &ChatGPTChat, config: &MarkdownConfig) -> Result<
                 continue;
             }
 
+            // Skip code content messages
+            if content.content_type == "code" {
+                continue;
+            }
+
             let is_reasoning = config.reasoning && is_reasoning_message(message);
 
             // Get timestamp for both reasoning and non-reasoning messages
@@ -143,6 +148,13 @@ pub fn parse_to_markdown(chat: &ChatGPTChat, config: &MarkdownConfig) -> Result<
                         if let ChatGPTContentPart::Text(text) = part {
                             writeln!(markdown, "{}\n", text.trim())?;
                         }
+                    }
+                }
+                ChatGPTContentType::Code => {
+                    if let Some(text) = &content.text {
+                        writeln!(markdown, "```")?;
+                        writeln!(markdown, "{}", text)?;
+                        writeln!(markdown, "```\n")?;
                     }
                 }
                 ChatGPTContentType::TetherQuote => {

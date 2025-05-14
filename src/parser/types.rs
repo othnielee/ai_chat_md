@@ -26,6 +26,7 @@ pub enum ChatGPTContentType {
     UserEditableContext,
     Tool,
     System,
+    Code,
     Unknown(String),
 }
 
@@ -38,6 +39,7 @@ impl From<&str> for ChatGPTContentType {
             "user_editable_context" => ChatGPTContentType::UserEditableContext,
             "tool" => ChatGPTContentType::Tool,
             "system" => ChatGPTContentType::System,
+            "code" => ChatGPTContentType::Code,
             other => ChatGPTContentType::Unknown(other.to_string()),
         }
     }

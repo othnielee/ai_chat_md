@@ -37,7 +37,7 @@ impl TimeFormatter {
                 let ts = value.parse::<f64>()?;
                 Utc.timestamp_opt(ts as i64, 0)
                     .single()
-                    .ok_or_else(|| super::error::ParseError::InvalidTimestamp(ts))?
+                    .ok_or(super::error::ParseError::InvalidTimestamp(ts))?
             }
         };
 
@@ -49,7 +49,7 @@ impl TimeFormatter {
         let utc_dt = Utc
             .timestamp_opt(value as i64, 0)
             .single()
-            .ok_or_else(|| super::error::ParseError::InvalidTimestamp(value))?;
+            .ok_or(super::error::ParseError::InvalidTimestamp(value))?;
 
         let local_time = utc_dt.with_timezone(&self.timezone);
         Ok(format!("{}", local_time.format("%Y-%m-%d %I:%M %p %Z")))

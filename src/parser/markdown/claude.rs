@@ -30,7 +30,7 @@ pub fn parse_to_markdown(chat: &ClaudeChat, config: &MarkdownConfig) -> Result<S
     let last_message_time = time_formatter.format_iso(&chat.updated_at)?;
 
     writeln!(markdown, "# {}", title)?;
-    writeln!(markdown, "")?;
+    writeln!(markdown)?;
     writeln!(
         markdown,
         "**Platform:** {}  ",

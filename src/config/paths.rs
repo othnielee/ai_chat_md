@@ -8,9 +8,9 @@ struct PathResolver {
 
 impl PathResolver {
     fn new(base_dir: &str) -> Result<Self> {
-        let base_dir = if base_dir.starts_with('~') {
+        let base_dir = if let Some(stripped) = base_dir.strip_prefix('~') {
             let home_dir = home_dir().ok_or(ConfigError::NoHomeDir)?;
-            let relative_path = base_dir[1..].trim_start_matches('/');
+            let relative_path = stripped.trim_start_matches('/');
             home_dir.join(relative_path)
         } else {
             PathBuf::from(base_dir)

@@ -148,13 +148,13 @@ fn build_app_config(cli_args: &CliArgs) -> Result<AppConfig> {
         app_config.timezone = timezone.clone();
     }
     if let Some(reasoning) = &cli_args.reasoning {
-        app_config.reasoning = reasoning.clone();
+        app_config.reasoning = *reasoning;
     }
     if let Some(base_dir) = &cli_args.base_dir {
         app_config.base_dir = base_dir.clone();
     }
     if let Some(inline_output) = &cli_args.inline_output {
-        app_config.inline_output = inline_output.clone();
+        app_config.inline_output = *inline_output;
     }
     if let Some(input_file) = &cli_args.input_file {
         app_config.input_file = Some(input_file.clone());

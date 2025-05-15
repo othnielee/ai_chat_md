@@ -83,7 +83,7 @@ pub fn parse_to_markdown(chat: &ChatGPTChat, config: &MarkdownConfig) -> Result<
     let last_message_time = time_formatter.format_unix(chat.updated_at)?;
 
     writeln!(markdown, "# {}", title)?;
-    writeln!(markdown, "")?;
+    writeln!(markdown)?;
     writeln!(
         markdown,
         "**Platform:** {}  ",

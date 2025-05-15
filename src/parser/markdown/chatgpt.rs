@@ -5,7 +5,15 @@ use crate::parser::participant::ChatGPTParticipantMapper;
 use crate::parser::timestamp::{TimeFormat, TimeFormatter};
 use crate::parser::types::ChatGPTContentType;
 use indicatif::{ProgressBar, ProgressStyle};
+use once_cell::sync::Lazy;
+use regex::Regex;
 use std::fmt::Write;
+
+static CITATION_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"(?s).*?").unwrap());
+
+fn strip_citations<S: AsRef<str>>(s: S) -> String {
+    CITATION_RE.replace_all(s.as_ref(), "").into_owned()
+}
 
 fn get_ordered_messages(chat: &ChatGPTChat) -> Vec<&ChatGPTNode> {
     let mut messages = Vec::new();
@@ -110,7 +118,7 @@ pub fn parse_to_markdown(chat: &ChatGPTChat, config: &MarkdownConfig) -> Result<
                 continue;
             }
 
-            // Skip code content messages
+            // Skip 'code' content
             if content.content_type == "code" {
                 continue;
             }
@@ -146,14 +154,14 @@ pub fn parse_to_markdown(chat: &ChatGPTChat, config: &MarkdownConfig) -> Result<
                 ChatGPTContentType::Text | ChatGPTContentType::MultimodalText => {
                     for part in &content.parts {
                         if let ChatGPTContentPart::Text(text) = part {
-                            writeln!(markdown, "{}\n", text.trim())?;
+                            writeln!(markdown, "{}\n", strip_citations(text).trim())?;
                         }
                     }
                 }
                 ChatGPTContentType::Code => {
                     if let Some(text) = &content.text {
                         writeln!(markdown, "```")?;
-                        writeln!(markdown, "{}", text)?;
+                        writeln!(markdown, "{}", strip_citations(text).trim())?;
                         writeln!(markdown, "```\n")?;
                     }
                 }
@@ -163,7 +171,7 @@ pub fn parse_to_markdown(chat: &ChatGPTChat, config: &MarkdownConfig) -> Result<
                             writeln!(markdown, "##### Quoted Content: {}\n", title)?;
                         }
                         writeln!(markdown, "````")?;
-                        writeln!(markdown, "{}", quoted)?;
+                        writeln!(markdown, "{}", strip_citations(quoted).trim())?;
                         writeln!(markdown, "````\n")?;
                     }
                     continue;
@@ -175,7 +183,7 @@ pub fn parse_to_markdown(chat: &ChatGPTChat, config: &MarkdownConfig) -> Result<
                 ChatGPTContentType::Tool | ChatGPTContentType::System => {
                     for part in &content.parts {
                         if let ChatGPTContentPart::Text(text) = part {
-                            writeln!(markdown, "{}\n", text.trim())?;
+                            writeln!(markdown, "{}\n", strip_citations(text).trim())?;
                         }
                     }
                 }

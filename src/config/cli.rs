@@ -33,7 +33,14 @@ pub struct CliArgs {
     pub timezone: Option<String>,
 
     /// Show reasoning (-r)
-    #[arg(short = 'r', long, env = ENV_CHAT_SHOW_REASONING)]
+    #[arg(
+        short = 'r',
+        long,
+        env = ENV_CHAT_SHOW_REASONING,
+        value_parser = clap::builder::BoolishValueParser::new(),
+        default_missing_value = "true",
+        num_args = 0..=1
+    )]
     pub reasoning: Option<bool>,
 
     /// Base directory for input/output files (-d)
@@ -41,7 +48,14 @@ pub struct CliArgs {
     pub base_dir: Option<String>,
 
     /// Force saving of output to same directory as input (-p)
-    #[arg(short = 'p', long, env = ENV_CHAT_INLINE_OUTPUT)]
+    #[arg(
+        short = 'p',
+        long,
+        env = ENV_CHAT_INLINE_OUTPUT,
+        value_parser = clap::builder::BoolishValueParser::new(),
+        default_missing_value = "true",
+        num_args = 0..=1
+    )]
     pub inline_output: Option<bool>,
 
     /// Input chat file (-i)

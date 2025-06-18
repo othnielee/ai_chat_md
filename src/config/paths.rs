@@ -99,19 +99,28 @@ impl PathResolver {
                 }
             }
             None => {
-                // Get the relative part of the input path from base_dir
-                let relative_input = input_path
-                    .strip_prefix(&self.base_dir)
-                    .unwrap_or_else(|_| Path::new(input_path.file_name().unwrap_or_default()));
+                if inline_output {
+                    // Force output to be in the same directory as the input file
+                    let input_dir = input_path.parent().unwrap_or_else(|| Path::new(""));
+                    let stem = input_path.file_stem().ok_or_else(|| {
+                        ConfigError::InvalidPath("Input path has no file stem".to_string())
+                    })?;
+                    Ok(input_dir.join(stem).with_extension("md"))
+                } else {
+                    // Get the relative part of the input path from base_dir
+                    let relative_input = input_path
+                        .strip_prefix(&self.base_dir)
+                        .unwrap_or_else(|_| Path::new(input_path.file_name().unwrap_or_default()));
 
-                // Get the parent directory relative to base_dir
-                let parent = relative_input.parent().unwrap_or_else(|| Path::new(""));
-                let stem = relative_input.file_stem().ok_or_else(|| {
-                    ConfigError::InvalidPath("Input path has no file stem".to_string())
-                })?;
+                    // Get the parent directory relative to base_dir
+                    let parent = relative_input.parent().unwrap_or_else(|| Path::new(""));
+                    let stem = relative_input.file_stem().ok_or_else(|| {
+                        ConfigError::InvalidPath("Input path has no file stem".to_string())
+                    })?;
 
-                // Join with base_dir to create output path
-                Ok(self.base_dir.join(parent).join(stem).with_extension("md"))
+                    // Join with base_dir to create output path
+                    Ok(self.base_dir.join(parent).join(stem).with_extension("md"))
+                }
             }
         }
     }

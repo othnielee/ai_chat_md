@@ -14,9 +14,10 @@ This Rust utility parses AI chat messages in JSON format from Claude, ChatGPT or
    cd ai_chat_md
    ```
 
-4. Build the project:
+4. Check and build the project:
 
    ```
+   cargo clippy --all-targets -- -D warnings
    cargo build --release
    ```
 

@@ -49,13 +49,13 @@ fn is_reasoning_message(message: &ChatGPTMessage) -> bool {
                     .metadata
                     .finished_text
                     .as_deref()
-                    .map_or(false, |text| text.starts_with("Reasoned")))
+                    .is_some_and(|text| text.starts_with("Reasoned")))
             || (message.metadata.initial_text.as_deref() == Some("Thinking")
                 && message
                     .metadata
                     .finished_text
                     .as_deref()
-                    .map_or(false, |text| text.starts_with("Thought"))))
+                    .is_some_and(|text| text.starts_with("Thought"))))
 }
 
 pub fn parse_to_markdown(chat: &ChatGPTChat, config: &MarkdownConfig) -> Result<String> {

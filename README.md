@@ -46,7 +46,7 @@ Available options are below. With the exception of the input file option, if an 
 - `-t, --timezone <TIMEZONE>`: Sets the timezone for the Markdown output.
 - `-d, --base-dir <BASE_DIR>`: Specifies the base directory for input and output files.
 - `-p, --inline-output`: Forces saving the output to the same directory as the input file.
-- `-i, --input-file <INPUT_FILE>`: Specifies the input chat file. This option is required. The input file must be stored under the designated `data` directory and should contain the chat messages in JSON format, downloaded via the browser developer tools.
+- `-i, --input-file <INPUT_FILE>`: Specifies the input chat file. This option is required. The input file must be stored under the designated 'base' directory and should contain the chat messages in JSON format, downloaded via the browser developer tools.
 - `-o, --output-file <OUTPUT_FILE>`: Specifies the output Markdown file.
 - `-u, --user-name <USER_NAME>`: Sets the name for the user.
 - `-a, --ai-name <AI_NAME>`: Sets the name for the AI assistant.
@@ -72,6 +72,10 @@ The available configuration options are:
 Environment variables can also be used to override the configuration values. The environment variable names are prefixed with `CHAT_` and use underscores as separators. For example, `CHAT_CHAT_SOURCE` corresponds to the `chat_source` configuration option.
 
 Command line arguments take precedence over environment variables and configuration file values.
+
+## Contributing
+
+This project is not intended for active development or contributions. You are welcome to fork the project, adapt the code, and use it in your own projects under the terms of the license. There is no expectation of future updates or contributions back to this repository.
 
 ## License
 
